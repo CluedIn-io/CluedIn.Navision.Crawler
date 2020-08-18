@@ -71,9 +71,9 @@ namespace CluedIn.Crawling.Navision.Infrastructure
             return new AccountInformation("", ""); 
         }
 
-        public IEnumerable<object> Get(string tableName)
+        public IEnumerable<object> Get(string tableName, string connectionString)
         {
-            using (var connection = new SqlConnection(""))
+            using (var connection = new SqlConnection(connectionString))
             {
                 SqlDataReader reader = null;
                 try
