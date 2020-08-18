@@ -10,6 +10,8 @@ namespace CluedIn.Crawling.Navision.Core
         public struct KeyName
         {
             public const string ApiKey = nameof(ApiKey);
+            public const string Table = nameof(Table);
+            public const string ConnectionString = nameof(ConnectionString);
         }
 
         // TODO Complete the following section

@@ -40,6 +40,10 @@ namespace CluedIn.Provider.Navision
             var navisionCrawlJobData = new NavisionCrawlJobData();
             if (configuration.ContainsKey(NavisionConstants.KeyName.ApiKey))
             { navisionCrawlJobData.ApiKey = configuration[NavisionConstants.KeyName.ApiKey].ToString(); }
+            if (configuration.ContainsKey(NavisionConstants.KeyName.Table))
+            { navisionCrawlJobData.Table = configuration[NavisionConstants.KeyName.Table].ToString(); }
+            if (configuration.ContainsKey(NavisionConstants.KeyName.ConnectionString))
+            { navisionCrawlJobData.ConnectionString = configuration[NavisionConstants.KeyName.ConnectionString].ToString(); }
 
             return await Task.FromResult(navisionCrawlJobData);
         }
@@ -76,6 +80,8 @@ namespace CluedIn.Provider.Navision
                 //TODO add the transformations from specific CrawlJobData object to dictionary
                 // add tests to GetHelperConfigurationBehaviour.cs
                 dictionary.Add(NavisionConstants.KeyName.ApiKey, navisionCrawlJobData.ApiKey);
+                dictionary.Add(NavisionConstants.KeyName.Table, navisionCrawlJobData.Table);
+                dictionary.Add(NavisionConstants.KeyName.ConnectionString, navisionCrawlJobData.ConnectionString);
             }
 
             return await Task.FromResult(dictionary);
