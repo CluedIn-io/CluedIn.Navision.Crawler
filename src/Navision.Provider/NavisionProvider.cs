@@ -40,10 +40,16 @@ namespace CluedIn.Provider.Navision
             var navisionCrawlJobData = new NavisionCrawlJobData();
             if (configuration.ContainsKey(NavisionConstants.KeyName.ApiKey))
             { navisionCrawlJobData.ApiKey = configuration[NavisionConstants.KeyName.ApiKey].ToString(); }
-            if (configuration.ContainsKey(NavisionConstants.KeyName.Table))
-            { navisionCrawlJobData.Table = configuration[NavisionConstants.KeyName.Table].ToString(); }
-            if (configuration.ContainsKey(NavisionConstants.KeyName.ConnectionString))
-            { navisionCrawlJobData.ConnectionString = configuration[NavisionConstants.KeyName.ConnectionString].ToString(); }
+            if (configuration.ContainsKey(NavisionConstants.KeyName.Url))
+            { navisionCrawlJobData.Url = configuration[NavisionConstants.KeyName.Url].ToString(); }
+            if (configuration.ContainsKey(NavisionConstants.KeyName.DeltaCrawlEnabled))
+            { navisionCrawlJobData.DeltaCrawlEnabled = bool.Parse(configuration[NavisionConstants.KeyName.DeltaCrawlEnabled].ToString()); }
+            if (configuration.ContainsKey(NavisionConstants.KeyName.UserName))
+            { navisionCrawlJobData.UserName = configuration[NavisionConstants.KeyName.UserName].ToString(); }
+            if (configuration.ContainsKey(NavisionConstants.KeyName.Password))
+            { navisionCrawlJobData.Password = configuration[NavisionConstants.KeyName.Password].ToString(); }
+            navisionCrawlJobData.ClientId = ConfigurationManager.AppSettings.GetValue<string>("Providers.NavisionClientId", null);
+            navisionCrawlJobData.ClientSecret = ConfigurationManager.AppSettings.GetValue<string>("Providers.NavisionClientSecret", null);
 
             return await Task.FromResult(navisionCrawlJobData);
         }
@@ -80,8 +86,10 @@ namespace CluedIn.Provider.Navision
                 //TODO add the transformations from specific CrawlJobData object to dictionary
                 // add tests to GetHelperConfigurationBehaviour.cs
                 dictionary.Add(NavisionConstants.KeyName.ApiKey, navisionCrawlJobData.ApiKey);
-                dictionary.Add(NavisionConstants.KeyName.Table, navisionCrawlJobData.Table);
-                dictionary.Add(NavisionConstants.KeyName.ConnectionString, navisionCrawlJobData.ConnectionString);
+                dictionary.Add(NavisionConstants.KeyName.Url, navisionCrawlJobData.Url);
+                dictionary.Add(NavisionConstants.KeyName.DeltaCrawlEnabled, navisionCrawlJobData.DeltaCrawlEnabled);
+                dictionary.Add(NavisionConstants.KeyName.UserName, navisionCrawlJobData.UserName);
+                dictionary.Add(NavisionConstants.KeyName.Password, navisionCrawlJobData.Password);
             }
 
             return await Task.FromResult(dictionary);

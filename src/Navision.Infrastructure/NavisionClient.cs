@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web.UI.WebControls;
 using CluedIn.Core.Logging;
@@ -71,26 +73,72 @@ namespace CluedIn.Crawling.Navision.Infrastructure
             return new AccountInformation("", ""); 
         }
 
-        public IEnumerable<object> Get(string tableName, string connectionString)
+        public IEnumerable<T> Get<T>(string value, NavisionCrawlJobData navisionCrawlJobData)
         {
-            using (var connection = new SqlConnection(connectionString))
+            DateTimeOffset lastCrawlFinishTime;
+            if (navisionCrawlJobData.LastCrawlFinishTime == DateTimeOffset.Parse("1/1/0001 12:00:00 AM +00:00"))
             {
-                SqlDataReader reader = null;
-                try
+                lastCrawlFinishTime = DateTimeOffset.Parse("01/01/1753 00:00:00");
+            }
+            else
+            {
+                lastCrawlFinishTime = navisionCrawlJobData.LastCrawlFinishTime;
+            }
+
+            var filter = $"(createdon ge {lastCrawlFinishTime:yyyy-MM-ddThh:mm:ssZ} or modifiedon ge {lastCrawlFinishTime:yyyy-MM-ddThh:mm:ssZ})";
+
+            var url = navisionCrawlJobData.Url;
+
+            if (navisionCrawlJobData.DeltaCrawlEnabled)
+            {
+                url = navisionCrawlJobData.Url + string.Format("/api/data/v9.1/{0}?$filter={1}", value, filter);
+            }
+
+            ResultList<T> resultList = null;
+            while (true)
+            {
+                using (HttpClient httpClient = new HttpClient())
                 {
-                    var command = new SqlCommand($"SELECT * FROM [dbo].[{tableName}]", connection);
-                    connection.Open();
-                    reader = command.ExecuteReader();
-                }
-                catch (Exception exception)
-                {
-                    log.Error(() => exception.Message, exception);
-                }
-                if (reader != null)
-                {
-                    while (reader.Read())
+                    try
                     {
-                        yield return new Result(reader);
+
+                        httpClient.Timeout = new TimeSpan(0, 2, 0);
+                        httpClient.DefaultRequestHeaders.Add("Prefer", "odata.maxpagesize=100");
+                        httpClient.DefaultRequestHeaders.Add("OData-MaxVersion", "4.0");
+                        httpClient.DefaultRequestHeaders.Add("OData-Version", "4.0");
+                        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", navisionCrawlJobData.ApiKey);
+                        HttpResponseMessage responseMessage = httpClient.GetAsync(url).Result;
+                        var content = responseMessage.Content.ReadAsStringAsync().Result;
+                        if (responseMessage.StatusCode == HttpStatusCode.Unauthorized)
+                        {
+                            //TODO Reauthenticate
+                            continue;
+                        }
+                        else if (responseMessage.StatusCode != HttpStatusCode.OK)
+                        {
+                            log.Error(() => "Connection failed " + responseMessage.StatusCode);
+                        }
+                        resultList = JsonConvert.DeserializeObject<ResultList<T>>(content, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+                    }
+                    catch (Exception e)
+                    {
+                        log.Error(() => e.Message);
+                    }
+
+
+                    if (resultList?.Value != null)
+                    {
+                        foreach (var item in resultList.Value)
+                            yield return item;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                    if (resultList.NextLink == null)
+                    {
+                        break;
                     }
                 }
             }

@@ -10,8 +10,10 @@ namespace CluedIn.Crawling.Navision.Core
         public struct KeyName
         {
             public const string ApiKey = nameof(ApiKey);
-            public const string Table = nameof(Table);
-            public const string ConnectionString = nameof(ConnectionString);
+            public const string Url = nameof(Url);
+            public const string DeltaCrawlEnabled = nameof(DeltaCrawlEnabled);
+            public const string UserName = nameof(UserName);
+            public const string Password = nameof(Password);
         }
 
         // TODO Complete the following section
