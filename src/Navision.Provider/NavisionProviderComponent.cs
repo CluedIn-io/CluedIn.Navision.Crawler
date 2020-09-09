@@ -2,6 +2,7 @@ using Castle.MicroKernel.Registration;
 
 using CluedIn.Core;
 using CluedIn.Core.Providers;
+using CluedIn.Core.Server;
 // 
 using CluedIn.Crawling.Navision.Core;
 using CluedIn.Crawling.Navision.Infrastructure.Installers;
@@ -12,7 +13,7 @@ using ComponentHost;
 namespace CluedIn.Provider.Navision
 {
     [Component(NavisionConstants.ProviderName, "Providers", ComponentType.Service, ServerComponents.ProviderWebApi, Components.Server, Components.DataStores, Isolation = ComponentIsolation.NotIsolated)]
-    public sealed class NavisionProviderComponent : ServiceApplicationComponent<EmbeddedServer>
+    public sealed class NavisionProviderComponent : ServiceApplicationComponent<IBusServer>
     {
         public NavisionProviderComponent(ComponentInfo componentInfo)
             : base(componentInfo)
@@ -26,10 +27,10 @@ namespace CluedIn.Provider.Navision
         {
             Container.Install(new InstallComponents());
 
-            Container.Register(Types.FromThisAssembly().BasedOn<IProvider>().WithServiceFromInterface().If(t => !t.IsAbstract).LifestyleSingleton());
-            Container.Register(Types.FromThisAssembly().BasedOn<IEntityActionBuilder>().WithServiceFromInterface().If(t => !t.IsAbstract).LifestyleSingleton());
+            var asm = System.Reflection.Assembly.GetExecutingAssembly();
 
-
+            Container.Register(Types.FromAssembly(asm).BasedOn<IProvider>().WithServiceFromInterface().If(t => !t.IsAbstract).LifestyleSingleton());
+            Container.Register(Types.FromAssembly(asm).BasedOn<IEntityActionBuilder>().WithServiceFromInterface().If(t => !t.IsAbstract).LifestyleSingleton());
 
             State = ServiceState.Started;
         }

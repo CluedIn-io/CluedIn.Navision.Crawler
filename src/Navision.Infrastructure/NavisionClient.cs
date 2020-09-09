@@ -1,15 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using System.Web.UI.WebControls;
-using CluedIn.Core.Logging;
 using CluedIn.Core.Providers;
 using CluedIn.Crawling.Navision.Core;
 using CluedIn.Crawling.Navision.Core.Models;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using RestSharp;
 
@@ -24,11 +22,11 @@ namespace CluedIn.Crawling.Navision.Infrastructure
     {
         private const string BaseUri = "http://sample.com";
 
-        private readonly ILogger log;
+        private readonly ILogger<NavisionClient> log;
 
         private readonly IRestClient client;
 
-        public NavisionClient(ILogger log, NavisionCrawlJobData navisionCrawlJobData, IRestClient client) // TODO: pass on any extra dependencies
+        public NavisionClient(ILogger<NavisionClient> log, NavisionCrawlJobData navisionCrawlJobData, IRestClient client) // TODO: pass on any extra dependencies
         {
             if (navisionCrawlJobData == null)
             {
@@ -57,7 +55,7 @@ namespace CluedIn.Crawling.Navision.Infrastructure
             if (response.StatusCode != HttpStatusCode.OK)
             {
                 var diagnosticMessage = $"Request to {client.BaseUrl}{url} failed, response {response.ErrorMessage} ({response.StatusCode})";
-                log.Error(() => diagnosticMessage);
+                log.LogError(diagnosticMessage);
                 throw new InvalidOperationException($"Communication to jsonplaceholder unavailable. {diagnosticMessage}");
             }
 
@@ -117,13 +115,13 @@ namespace CluedIn.Crawling.Navision.Infrastructure
                         }
                         else if (responseMessage.StatusCode != HttpStatusCode.OK)
                         {
-                            log.Error(() => "Connection failed " + responseMessage.StatusCode);
+                            log.LogError("Connection failed " + responseMessage.StatusCode);
                         }
                         resultList = JsonConvert.DeserializeObject<ResultList<T>>(content, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
                     }
                     catch (Exception e)
                     {
-                        log.Error(() => e.Message);
+                        log.LogError(e.Message);
                     }
 
 

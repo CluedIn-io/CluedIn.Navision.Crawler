@@ -24,6 +24,7 @@ namespace CluedIn.Crawling.Navision
             var client = clientFactory.CreateNew(navisioncrawlJobData);
 
             //retrieve data from provider and yield objects
+            
         }       
     }
 }
